@@ -1,35 +1,44 @@
 from flask import Flask, request, jsonify
-import pytesseract
-from PIL import Image
+import easyocr
+import numpy as np
+import cv2
 import base64
-import io
-import os
 
 app = Flask(__name__)
 
-@app.route('/extract-text', methods=['POST'])
-def extract_text():
+# Initialize EasyOCR reader
+reader = easyocr.Reader(['en'])  # Add other languages if needed
+
+@app.route('/ocrget', methods=['GET'])
+def ocrget():
+    return jsonify({'results': 'Get Api v1'})
+
+@app.route('/ocr-base64', methods=['POST'])
+def ocr_base64():
     data = request.get_json()
 
-    if 'image_base64' not in data:
-        return jsonify({'error': 'Missing image_base64'}), 400
+    if not data or 'image_base64' not in data:
+        return jsonify({'error': 'Missing image_base64 in request'}), 400
 
     try:
-        base64_str = data.get("image_base64")
-        if "," in base64_str:
-            base64_str = base64_str.split(",")[1]
-        # Decode the image
+        # Decode base64 string to bytes
         image_data = base64.b64decode(data['image_base64'])
-        image = Image.open(io.BytesIO(image_data))
+        
+        # Convert bytes to numpy array and decode to OpenCV image
+        nparr = np.frombuffer(image_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # OCR with Tesseract
-        text = pytesseract.image_to_string(image)
+        # Run OCR
+        results = reader.readtext(img)
+        restext = []
+        for bbox, text, conf in results:
+            restext.append(text)
 
-        return jsonify({'text': text})
+        return jsonify({'results': restext})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))  # Render assigns the PORT dynamically
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
+
