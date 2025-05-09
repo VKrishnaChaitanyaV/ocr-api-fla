@@ -1,28 +1,23 @@
-FROM python:3.11-slim
+# Usa una imagen base de Python oficial
+FROM python:3.9-slim
 
-# Install system dependencies required by OpenCV and EasyOCR
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libglib2.0-0 \
-    libsm6 \
-    libxrender1 \
-    libxext6 \
-    libgl1-mesa-glx \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set the working directory
+# Establece el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copy the project files
-COPY . .
+# Copia el archivo requirements.txt al contenedor
+COPY requirements.txt /app/
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Instala las dependencias de la aplicación
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port (optional, for local testing)
+# Copia todo el código fuente al contenedor
+COPY . /app/
+
+# Expone el puerto 8080
 EXPOSE 8080
 
-# Run the application using Waitress (for production)
-CMD ["waitress-serve", "--host", "0.0.0.0", "--port", "8080", "app:app"]
+# Establece la variable de entorno para el puerto
+ENV PORT 8080
+
+# Define el comando para ejecutar la aplicación Flask
+CMD ["python", "app.py"]
