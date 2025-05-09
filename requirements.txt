@@ -1,5 +1,5 @@
 easyocr==1.7.2
-Flask==3.0.3
+Flask==2.2.3  # Downgrade Flask to a stable version of Flask 2.x
 numpy==1.24.4
 opencv-python==4.11.0.86
 opencv-python-headless==4.11.0.86
