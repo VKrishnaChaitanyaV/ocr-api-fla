@@ -9,7 +9,7 @@ app = Flask(__name__)
 # Initialize EasyOCR reader
 reader = easyocr.Reader(['en'])  # Add other languages if needed
 
-@app.route('/ocrget', methods=['GET'])
+@app.route('/', methods=['GET'])
 def ocrget():
     return jsonify({'results': 'Get Api v1'})
 
